@@ -161,7 +161,11 @@ int main(int argc, char **argv)
     printf("Page Faults        : %" PRIu64 "\n", stats.page_faults);
     printf("Writes to disk     : %" PRIu64 "\n", stats.writebacks);
     printf("Average Access Time: %f\n", stats.aat);
-    printf("Swap Size (KB)     : %" PRIu64 "\n", (((uint64_t) swap_queue_size(&swap_queue)) * PAGE_SIZE) >> 10);
+    printf("Max Swap Size      : %" PRIu64 " KB\n", (((uint64_t) swap_queue.size_max) * PAGE_SIZE) >> 10);
+
+    if (swap_queue.size > 0)  {
+        printf("Swap Not Freed     : %" PRIu64 " KB\n", (((uint64_t) swap_queue.size) * PAGE_SIZE) >> 10);
+    }
 }
 
 void check_validity(int checks) {

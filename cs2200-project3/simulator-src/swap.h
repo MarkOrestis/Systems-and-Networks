@@ -17,10 +17,10 @@ typedef struct _swap_queue_t {
     swap_info_t *head;
     swap_info_t *tail;
     uint64_t size;
+    uint64_t size_max;
 } swap_queue_t;
 
 swap_info_t *create_entry(void);
 void swap_queue_enqueue(swap_queue_t *queue, swap_info_t* info);
 void swap_queue_dequeue(swap_queue_t *queue, uint64_t token);
 swap_info_t *swap_queue_find(swap_queue_t *queue, uint64_t token);
-int swap_queue_size(swap_queue_t *queue);

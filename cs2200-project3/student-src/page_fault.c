@@ -25,22 +25,37 @@
     ----------------------------------------------------------------------------------
  */
 void page_fault(vaddr_t address) {
+
+	stats.page_faults++;
     /* First, split the faulting address and locate the page table entry */
 
+	vpn_t myvpn = vaddr_vpn(address);
+
+	pte_t* pte = ((pte_t*) (mem + PTBR * PAGE_SIZE)) + myvpn;
+
+	// pte_t pageEntry = *pageTable;
 
     /* It's a page fault, so the entry obviously won't be valid. Grab
        a frame to use by calling free_frame(). */
 
+	pfn_t mypfn = free_frame();
 
     /* Update the page table entry. Make sure you set any relevant bits. */
 
+	pte->valid = 1;
+	pte->pfn = mypfn;
 
     /* Update the frame table. Make sure you set any relevant bits. */
 
+	frame_table[mypfn].vpn = myvpn;
+	frame_table[mypfn].referenced = 1;
+	frame_table[mypfn].mapped = 1;
+	frame_table[mypfn].process = current_process;
 
     /* Initialize the page's memory. On a page fault, it is not enough
      * just to allocate a new frame. We must load in the old data from
      * disk into the frame. If there was no old data on disk, then
+
      * we need to clear out the memory (why?).
      *
      * 1) Get a pointer to the new frame in memory.
@@ -51,5 +66,17 @@ void page_fault(vaddr_t address) {
      * Otherwise, zero the page's memory. If the page is later written
      * back, swap_write() will automatically allocate a swap entry.
      */
+
+	// if (pte->swap == NULL) {
+	// 	int var = 0;
+	// }
+
+	if (swap_exists(pte)) {
+		swap_read(pte, mem + mypfn*PAGE_SIZE);
+	} 
+	else {
+
+		memset(mem + mypfn * PAGE_SIZE, 0, PAGE_SIZE);
+	}
 
 }

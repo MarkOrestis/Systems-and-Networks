@@ -37,6 +37,21 @@ pfn_t free_frame(void) {
      */
 
     /* If the victim is in use, we must evict it first */
+    if (frame_table[victim_pfn].mapped) {
+
+    	vpn_t myvpn = frame_table[victim_pfn].vpn;
+    	pcb_t* mypcb = frame_table[victim_pfn].process;
+
+    	pte_t* pte = ((pte_t*) (mem + (mypcb->saved_ptbr  * PAGE_SIZE))) + myvpn;
+    	if (pte->dirty) {
+    		stats.writebacks++;
+    		swap_write(pte, mem + victim_pfn*PAGE_SIZE);
+    	}
+    	frame_table[victim_pfn].mapped = 0;
+    	pte->valid = 0;
+    	pte->dirty = 0;
+    } 
+    
 
 
     /* Return the pfn */
@@ -91,10 +106,26 @@ pfn_t select_victim_frame() {
     } else if (replacement == CLOCKSWEEP) {
         /* Implement a clock sweep algorithm here */
 
+    	
+    static size_t i = 0;
+    	while(TRUE) {
 
+    		size_t index = i % num_entries;
+    		if (frame_table[index].protected == 0) {
+	    		if (frame_table[index].referenced == 0) {
+	    			i++;
+	    			return index;
+	    		}
+	    		else {
+	    			frame_table[index].referenced = 0;
+	    		}
+	    	}
+	    	i++;
+    	} 
     }
 
     /* If every frame is protected, give up. This should never happen
        on the traces we provide you. */
     panic("System ran out of memory\n");
+    return 0;
 }

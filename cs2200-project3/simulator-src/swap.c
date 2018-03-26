@@ -26,6 +26,9 @@ void swap_queue_enqueue(swap_queue_t *queue, swap_info_t* info)
         queue->tail = info;
     }
     queue->size++;
+    if (queue->size > queue->size_max) {
+        queue->size_max = queue->size;
+    }
 }
 
 
@@ -65,16 +68,4 @@ swap_info_t *swap_queue_find(swap_queue_t *queue, uint64_t token)
         curr = curr->next;
     }
     return NULL;
-}
-
-int swap_queue_size(swap_queue_t *queue)
-{
-    swap_info_t *curr = queue->head;
-    int count = 0;
-
-    while (curr) {
-        curr = curr->next;
-        count++;
-    }
-    return count;
 }
